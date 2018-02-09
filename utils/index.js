@@ -63,7 +63,7 @@ const handler = {
     return {
       channel: 'kline',
       data: kline.slice(0, pointsLength).map((row, index) => {
-        return [times[index], row[1], row[2], row[3], row[4], row[5]]
+        return [times[index], parseFloat(row[1]), parseFloat(row[2]), parseFloat(row[3]), parseFloat(row[4]), parseFloat(row[5])]
       })
     }
   },
@@ -105,18 +105,18 @@ const handler = {
   },
   fetchLatestKline: function () {
     let index = parseInt(Math.random() * 500)
-    let row = kline[index]
+    let row = kline[index] || kline[0]
     return {
       channel: 'kline',
-      data: [startTime + (ticks + 240) * 60, row[1], row[2], row[3], row[4], row[5]]
+      data: [[startTime + (ticks + 240) * 60, parseFloat(row[1]), parseFloat(row[2]), parseFloat(row[3]), parseFloat(row[4]), parseFloat(row[5])]]
     }
   },
   fetchLatestTrades: function () {
-    let total = parseInt(Math.random() * 10)
-    total = total < 1 ? 1 : total
+    // let total = parseInt(Math.random() * 10)
+    // total = total < 1 ? 1 : total
     return {
       channel: 'trades',
-      data: generateTrades(total)
+      data: generateTrades(1)
     }
   }
 }
