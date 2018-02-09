@@ -1,31 +1,45 @@
 <!DOCTYPE html>
 <html>
   <body>
+    <style>
+      p {
+        width: 400px;
+        height: 400px;
+        overflow: auto;
+        display: inline-block;
+        border: 1px solid #ddd;
+        margin: 0 10px;
+      }
+    </style>
     <h1>WebSocket Demo</h1>
-    <strong>Server returned data: </strong>
-    <p id="d">
-    </p>
-    <button onClick="start()">开启行情</button>
 
+    <button onClick="start('kline')">开启kline</button>
+    <button onClick="start('ticker')">开启ticker</button>
+    <button onClick="start('depth')">开启depth</button>
+    <button onClick="start('trades')">开启trades</button>
+    <hr>
+    <p id="kline">
+    </p>
+    <p id="ticker">
+    </p>
+    <p id="depth">
+    </p>
+    <p id="trades">
+    </p>
     <script>
       var host = window.document.location.host.replace(/:.*/, '')
       var ws = new WebSocket('ws://' + host + ':9000/websocket')
       //wss://api.huobipro.com/ws
       // var ws = new WebSocket('wss://api.huobipro.com/ws')
       ws.onmessage = function (e) {
-        console.log(e)
-        document.getElementById('d').innerText = e.data
+        let json = JSON.parse(e.data)
+        document.getElementById(json.channel).innerText = JSON.stringify(json, null, ' ')
       }
-      ws.onopen = function () {
-
-      }
-
-      function start () {
+      function start (channel) {
         ws.send(JSON.stringify({
-          channel: 'kline',
+          channel: channel,
           interval: '1m',
-          event: '',
-          symbol: ''
+          event: 'subscribe'
         }))
       }
     </script>

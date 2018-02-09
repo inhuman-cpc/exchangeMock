@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "chance": "^1.0.13",
+    "chance": "*",
     "express": "^4.16.0",
     "ws": "^4.0.0"
   },

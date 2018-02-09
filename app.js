@@ -18,34 +18,50 @@ wss.on('connection', function (ws, req) {
 
   ws.on('message', function (msg) {
     msg = JSON.parse(msg)
-    tasks.push(ws)
-    if (msg.interval) {
-      ws.__interval = msg.interval
+    if (msg.event === 'subscribe') {
+      tasks.push(ws)
+      ws[`__${msg.channel}`] = true
+      ws.send(JSON.stringify(handler[msg.channel](msg.interval)), function (err) {
+        !err && console.log('data has been sent')
+      })
+    } else {
+      ws[`__${msg.channel}`] = false
     }
-    ws.send(JSON.stringify(handler[msg.channel](msg)), function (err) {
-      !err && console.log('data has been sent')
-    })
   })
 })
 
 // 模拟分时图
 setInterval(function () {
   tasks.forEach(function (ws) {
-    ws.send(JSON.stringify(handler.fetchLatestKline()), function (err) {
-      !err && console.log('kline data has been sent')
-    })
-
-    setTimeout(function () {
-      ws.send(JSON.stringify(handler.ticker()), function (err) {
-        !err && console.log('ticker data has been sent')
+    if (ws.__kline) {
+      ws.send(JSON.stringify(handler.fetchLatestKline()), function (err) {
+        !err && console.log('kline data has been sent')
       })
-    }, 1000)
+    }
 
-    setTimeout(function () {
-      ws.send(JSON.stringify(handler.depth()), function (err) {
-        !err && console.log('depth data has been sent')
-      })
-    }, 2000)
+    if (ws.__ticker) {
+      setTimeout(function () {
+        ws.send(JSON.stringify(handler.ticker()), function (err) {
+          !err && console.log('ticker data has been sent')
+        })
+      }, 500)
+    }
+
+    if (ws.__depth) {
+      setTimeout(function () {
+        ws.send(JSON.stringify(handler.depth()), function (err) {
+          !err && console.log('depth data has been sent')
+        })
+      }, 1500)
+    }
+
+    if (ws.__trades) {
+      setTimeout(function () {
+        ws.send(JSON.stringify(handler.fetchLatestTrades()), function (err) {
+          !err && console.log('depth data has been sent')
+        })
+      }, 2500)
+    }
   })
 }, 3000)
 
