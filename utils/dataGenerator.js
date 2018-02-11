@@ -112,17 +112,18 @@ class DataGenerator {
     }
   }
 
-  trade () {
-    return {
-      channel: 'trade',
-      data: {
-        trades: generateTrades(30),
-        symbol: 'ETH_BTC'
-      }
-    }
-  }
+  // 首次ajax拉取
+  // trade () {
+  //   return {
+  //     channel: 'trade',
+  //     data: {
+  //       trades: generateTrades(30),
+  //       symbol: 'ETH_BTC'
+  //     }
+  //   }
+  // }
 
-  fetchLatestTrades () {
+  trade () {
     return {
       channel: 'trade',
       data: {

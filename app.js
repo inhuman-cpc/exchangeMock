@@ -65,7 +65,7 @@ setInterval(function () {
     }
 
     if (ws.__trade) {
-      ws.send(JSON.stringify(generator.fetchLatestTrades()), function (err) {
+      ws.send(JSON.stringify(generator.trade()), function (err) {
         !err && console.log('trades data has been sent')
       })
     }
