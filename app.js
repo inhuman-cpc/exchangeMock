@@ -21,7 +21,7 @@ wss.on('connection', function (ws, req) {
     msg = JSON.parse(msg)
     if (msg.event === 'subscribe') {
       if (!ws.__generator) {
-        let start = new Date(2018, 0, 1).getTime()
+        let start = new Date(2019, 0, 1).getTime()
         ws.__generator = new DataGenerator(start, msg.interval)
       }
       ws[`__${msg.channel}`] = true
@@ -47,7 +47,7 @@ setInterval(function () {
     generator.tick += 1
 
     if (ws.__kline) {
-      ws.send(JSON.stringify(generator.fetchLatestKline()), function (err) {
+      ws.send(JSON.stringify(generator.kline()), function (err) {
         !err && console.log('kline data has been sent')
       })
     }
@@ -66,7 +66,7 @@ setInterval(function () {
 
     if (ws.__trade) {
       ws.send(JSON.stringify(generator.fetchLatestTrades()), function (err) {
-        !err && console.log('depth data has been sent')
+        !err && console.log('trades data has been sent')
       })
     }
   })

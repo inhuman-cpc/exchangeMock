@@ -79,24 +79,25 @@ class DataGenerator {
     return lastItem + this.tick * parseInterval(this.interval)
   }
 
-  kline () {
-    return {
-      channel: 'kline',
-      data: {
-        symbol: 'BTC_USDT',
-        candles: kline.map((row, index) => {
-          return [this.times[index], parseFloat(row[1]), parseFloat(row[2]), parseFloat(row[3]), parseFloat(row[4]), parseFloat(row[5])]
-        })
-      }
-    }
-  }
+  // 使用接口去拉取
+  // kline () {
+  //   return {
+  //     channel: 'kline',
+  //     data: {
+  //       symbol: 'ETH_BTC',
+  //       candles: kline.map((row, index) => {
+  //         return [this.times[index], parseFloat(row[1]), parseFloat(row[2]), parseFloat(row[3]), parseFloat(row[4]), parseFloat(row[5])]
+  //       })
+  //     }
+  //   }
+  // }
 
-  fetchLatestKline () {
+  kline () {
     let row = kline[this.tick % kline.length]
     return {
       channel: 'kline',
       data: {
-        symbol: 'BTC_UDST',
+        symbol: 'ETH_BTC',
         candles: [
           [
             this.latestTime(),
@@ -116,7 +117,7 @@ class DataGenerator {
       channel: 'trade',
       data: {
         trades: generateTrades(30),
-        symbol: 'BTC_USDT'
+        symbol: 'ETH_BTC'
       }
     }
   }
@@ -126,7 +127,7 @@ class DataGenerator {
       channel: 'trade',
       data: {
         trades: generateTrades(1, this.latestTime()),
-        symbol: 'BTC_USDT'
+        symbol: 'ETH_BTC'
       }
     }
   }
@@ -134,13 +135,13 @@ class DataGenerator {
   ticker () {
     let row = kline[this.tick % kline.length]
     // [交易对，价格，24小时成交量，24小时涨跌幅，24小时涨跌额，24小时最高价，24小时最低价]
-    // [['BTC_USDT', 200.00, 300.00, 400.00, 500.00, 600.00, 100.00]]
+    // [['ETH_BTC', 200.00, 300.00, 400.00, 500.00, 600.00, 100.00]]
     return {
       channel: 'ticker',
       data: {
         tickers: [
           [
-            'BTC_USDT',
+            'ETH_BTC',
             parseFloat(row[2]),
             parseFloat(row[5]),
             parseFloat((row[2] - row[3]) / row[3]),
@@ -160,7 +161,7 @@ class DataGenerator {
       channel: 'depth',
       data: {
         ...info,
-        symbol: 'BTC_USDT'
+        symbol: 'ETH_BTC'
       }
     }
   }
