@@ -2,15 +2,13 @@ let WebSocketServer = require('ws').Server
 let express = require('express')
 let path = require('path')
 let app = express()
-let handler = require('./utils')
+let DataGenerator = require('./utils/dataGenerator')
 let server = require('http').createServer()
-
 
 app.use(express.static(path.join(__dirname, '/public')))
 
 let wss = new WebSocketServer({server: server, path: '/websocket'})
 wss.on('connection', function (ws, req) {
-  // req.headers['Acees-Control-Allow-Origin'] = '*'
   ws.on('close', function () {
     console.log('stopping client interval')
   })
@@ -22,8 +20,12 @@ wss.on('connection', function (ws, req) {
   ws.on('message', function (msg) {
     msg = JSON.parse(msg)
     if (msg.event === 'subscribe') {
+      if (!ws.__generator) {
+        let start = new Date(2018, 0, 1).getTime()
+        ws.__generator = new DataGenerator(start, msg.interval)
+      }
       ws[`__${msg.channel}`] = true
-      ws.send(JSON.stringify(handler[msg.channel](msg.interval)), function (err) {
+      ws.send(JSON.stringify(ws.__generator[msg.channel]()), function (err) {
         !err && console.log('data has been sent')
       })
     } else {
@@ -39,37 +41,36 @@ setInterval(function () {
       console.log('Client has been terminated')
       return
     }
+
+    let generator = ws.__generator
+    if (!generator) return
+    generator.tick += 1
+
     if (ws.__kline) {
-      ws.send(JSON.stringify(handler.fetchLatestKline()), function (err) {
+      ws.send(JSON.stringify(generator.fetchLatestKline()), function (err) {
         !err && console.log('kline data has been sent')
       })
     }
 
-    // if (ws.__ticker) {
-    //   setTimeout(function () {
-    //     ws.send(JSON.stringify(handler.ticker()), function (err) {
-    //       !err && console.log('ticker data has been sent')
-    //     })
-    //   }, 500)
-    // }
-    //
-    // if (ws.__depth) {
-    //   setTimeout(function () {
-    //     ws.send(JSON.stringify(handler.depth()), function (err) {
-    //       !err && console.log('depth data has been sent')
-    //     })
-    //   }, 1500)
-    // }
-    //
-    // if (ws.__trades) {
-    //   setTimeout(function () {
-    //     ws.send(JSON.stringify(handler.fetchLatestTrades()), function (err) {
-    //       !err && console.log('depth data has been sent')
-    //     })
-    //   }, 2500)
-    // }
+    if (ws.__ticker) {
+      ws.send(JSON.stringify(generator.ticker()), function (err) {
+        !err && console.log('ticker data has been sent')
+      })
+    }
+
+    if (ws.__depth) {
+      ws.send(JSON.stringify(generator.depth()), function (err) {
+        !err && console.log('depth data has been sent')
+      })
+    }
+
+    if (ws.__trade) {
+      ws.send(JSON.stringify(generator.fetchLatestTrades()), function (err) {
+        !err && console.log('depth data has been sent')
+      })
+    }
   })
-}, 10 * 1000)
+}, 3 * 1000)
 
 server.on('request', app)
 server.listen(9000, function () {
