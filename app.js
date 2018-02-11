@@ -25,9 +25,6 @@ wss.on('connection', function (ws, req) {
         ws.__generator = new DataGenerator(start, msg.interval)
       }
       ws[`__${msg.channel}`] = true
-      ws.send(JSON.stringify(ws.__generator[msg.channel]()), function (err) {
-        !err && console.log('data has been sent')
-      })
     } else {
       ws[`__${msg.channel}`] = false
     }
