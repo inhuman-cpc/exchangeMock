@@ -1,14 +1,23 @@
 let kline = require('../mocks/kline.json')
+let numeral = require('numeral')
 
 function getRandomRow () {
   let index = parseInt(Math.random() * kline.length)
   return kline[index] || index[0]
 }
 
+function format (num) {
+  return numeral(parseFloat(num) || 0).format('0[.]00000000')
+}
+
+function mockAmount (max = 100, min = 0.1) {
+  return numeral(Math.random() * max + min).format('0[.]00000000')
+}
+
 function generateTimes (startTime, interval) {
   const pointsLength = kline.length
   let list = new Array(pointsLength)
-  let increaseAmount = parseInterval(interval)
+  let increaseAmount = parseInterval2Ms(interval)
   for (let i = 0; i < pointsLength; i += 1) {
     list[i] = startTime + i * increaseAmount
   }
@@ -16,7 +25,7 @@ function generateTimes (startTime, interval) {
   return list
 }
 
-function parseInterval (interval) {
+function parseInterval2Ms (interval) {
   let map = {
     m: 60,
     h: 60 * 60,
@@ -36,8 +45,9 @@ function generateAsksBids (ask1, bid1) {
   for (let i = 0; i < len; i += 1) {
     let ask = parseFloat(ask1) + 0.0001 * i
     let bid = parseFloat(bid1) - 0.0001 * i
-    asks.push([parseFloat(ask.toFixed(6)), parseFloat((Math.random() * 1000).toFixed(6))])
-    bids.push([parseFloat(bid.toFixed(6)), parseFloat((Math.random() * 1000).toFixed(6))])
+    // [价格，数量]
+    asks.push([format(ask), mockAmount()])
+    bids.push([format(bid), mockAmount()])
   }
   return {asks, bids}
 }
@@ -46,7 +56,8 @@ function generateTrades (total = 30, latestTime) {
   if (total === 1) {
     let row = getRandomRow()
     return [
-      [parseFloat(row[1]), parseFloat((Math.random() * 1000).toFixed(6)), Date.now(), Date.now() % 2 ? 'SELL' : 'BUY']
+      // [价格, 成交量, 时间戳, 买卖类型]
+      [format(row[1]), mockAmount(), Date.now(), Date.now() % 2 ? 'SELL' : 'BUY']
     ]
   }
 
@@ -56,8 +67,8 @@ function generateTrades (total = 30, latestTime) {
     let time = kline[(kline.length - 1 - i) % kline.length][0]
     // [价格, 成交量, 时间戳, 买卖类型]
     trades.push([
-      parseFloat(row[1]),
-      parseFloat((Math.random() * 1000).toFixed(6)),
+      format(row[1]),
+      mockAmount(150, 0.2),
       time,
       i % 2 ? 'SELL' : 'BUY'
     ])
@@ -76,21 +87,8 @@ class DataGenerator {
 
   latestTime () {
     let lastItem = this.times[this.times.length - 1]
-    return lastItem + this.tick * parseInterval(this.interval)
+    return lastItem + this.tick * parseInterval2Ms(this.interval)
   }
-
-  // 使用接口去拉取
-  // kline () {
-  //   return {
-  //     channel: 'kline',
-  //     data: {
-  //       symbol: 'ETH_BTC',
-  //       candles: kline.map((row, index) => {
-  //         return [this.times[index], parseFloat(row[1]), parseFloat(row[2]), parseFloat(row[3]), parseFloat(row[4]), parseFloat(row[5])]
-  //       })
-  //     }
-  //   }
-  // }
 
   kline () {
     let row = kline[this.tick % kline.length]
@@ -99,29 +97,19 @@ class DataGenerator {
       data: {
         symbol: 'ETH_BTC',
         candles: [
+          // [时间,开盘价,最高价,最低价,收盘价,成交量]
           [
             this.latestTime(),
-            parseFloat(row[1]),
-            parseFloat(row[2]),
-            parseFloat(row[3]),
-            parseFloat(row[4]),
-            parseFloat(row[5])
+            format(row[1]),
+            format(row[2]),
+            format(row[3]),
+            format(row[4]),
+            format(row[5])
           ]
         ]
       }
     }
   }
-
-  // 首次ajax拉取
-  // trade () {
-  //   return {
-  //     channel: 'trade',
-  //     data: {
-  //       trades: generateTrades(30),
-  //       symbol: 'ETH_BTC'
-  //     }
-  //   }
-  // }
 
   trade () {
     return {
@@ -136,19 +124,18 @@ class DataGenerator {
   ticker () {
     let row = kline[this.tick % kline.length]
     // [交易对，价格，24小时成交量，24小时涨跌幅，24小时涨跌额，24小时最高价，24小时最低价]
-    // [['ETH_BTC', 200.00, 300.00, 400.00, 500.00, 600.00, 100.00]]
     return {
       channel: 'ticker',
       data: {
         tickers: [
           [
             'ETH_BTC',
-            parseFloat(row[2]),
-            parseFloat(row[5]),
-            parseFloat((row[2] - row[3]) / row[3]),
-            parseFloat(row[2] - row[3]),
-            parseFloat(row[2]),
-            parseFloat(row[3])
+            format(row[2]),
+            format(row[5]),
+            numeral((row[2] - row[3]) / row[3]).format('0[.]0000'),
+            numeral(row[2] - row[3]).format('0[.]000000'),
+            format(row[2]),
+            format(row[3])
           ]
         ]
       }
@@ -168,15 +155,20 @@ class DataGenerator {
   }
 }
 
-// kline = kline.slice(0, 5)
-// const timerInterval = 3000
-// let date = new Date(2017, 0, 1)
-// let gen = new DataGenerator(date.getTime() / 1000, '1m')
-// console.log(gen.trades())
-// setInterval(function () {
+// function test () {
+//   let fs = require('fs')
+//   kline = kline.slice(0, 5)
+//   let date = new Date(2017, 0, 1)
+//   let gen = new DataGenerator(date.getTime(), '1m')
 //   gen.tick += 1
-//   console.log(gen.ticker())
-//   console.log(JSON.stringify(gen.depth(), null, ' '))
-// }, timerInterval)
+//   let str = ''
+//   'kline,ticker,depth,trade'.split(',').forEach(key => {
+//     str += `${key}:\n${JSON.stringify(gen[key](), null, ' ')}\n\n`
+//   })
+//
+//   fs.writeFileSync('./test.log', str)
+// }
+//
+// test()
 
 module.exports = DataGenerator
