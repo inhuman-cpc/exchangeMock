@@ -21,8 +21,7 @@ wss.on('connection', function (ws, req) {
     msg = JSON.parse(msg)
     if (msg.event === 'subscribe') {
       if (!ws.__generator) {
-        let start = new Date(2019, 0, 1).getTime()
-        ws.__generator = new DataGenerator(start, msg.interval)
+        ws.__generator = new DataGenerator(new Date(2019, 0, 1).getTime(), msg.interval || '1m')
       }
       ws[`__${msg.channel}`] = true
     } else {
@@ -40,9 +39,13 @@ setInterval(function () {
     }
 
     let generator = ws.__generator
-    if (!generator) return
-    generator.tick += 1
+    if (!generator) {
+      console.log('no generator found!')
+      return
+    }
 
+    generator.tick += 1
+    
     if (ws.__kline) {
       ws.send(JSON.stringify(generator.kline()), function (err) {
         !err && console.log('kline data has been sent')
