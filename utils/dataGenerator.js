@@ -147,10 +147,9 @@ class DataGenerator {
     let info = generateAsksBids(row[2], row[3])
     return {
       channel: 'depth',
-      data: {
-        ...info,
+      data: Object.assign(info, {
         symbol: 'ETH_BTC'
-      }
+      })
     }
   }
 }
