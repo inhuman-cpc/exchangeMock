@@ -27,15 +27,17 @@ function generateTimes (startTime, interval) {
 
 function parseInterval2Ms (interval) {
   let map = {
-    m: 60,
-    h: 60 * 60,
-    d: 60 * 60 * 24,
-    w: 60 * 60 * 24 * 7
+    FIFTEEN_MINUTES: 15,
+    FIVE_MINUTES: 5,
+    ONE_HOUR: 60,
+    ONE_MINUTE: 1,
+    ONE_DAY: 60 * 24,
+    ONE_MONTH: 60 * 24 * 30,
+    ONE_WEEK: 60 * 24 * 7,
+    THIRTY_MINUTES: 30
   }
-  let strs = interval.split('')
-  let unit = strs.pop()
 
-  return map[unit] * strs.join('') * 1000
+  return (map[interval] || 1) * 60 * 1000
 }
 
 function generateAsksBids (ask1, bid1) {
@@ -78,7 +80,7 @@ function generateTrades (total = 30, latestTime) {
 }
 
 class DataGenerator {
-  constructor (startTime, interval) {
+  constructor (startTime, interval = 'ONE_MINUTE') {
     this.interval = interval
     this.start = startTime
     this.tick = 0
